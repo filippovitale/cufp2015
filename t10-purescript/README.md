@@ -11,6 +11,13 @@
 ```
 
 ```
+npm install -g pulp
+npm install virtual-dom
 pulp init
 pulp dep install purescript-halogen#master
+pulp server
 ```
+
+## Tutorial notes
+
+- https://github.com/filippovitale/cufp-2015-tutorial-purescript
