@@ -74,39 +74,32 @@ Just 2 :* (Just True :* (Just 'c' :* Nil))
 ```
 
 ```
+λ > pure_NP' Nothing :: NP Maybe '[Int, Char, Bool, Bool, Bool]
+Nothing :* (Nothing :* (Nothing :* (Nothing :* (Nothing :* Nil))))
+```
+
+```bash
+cabal install generics-sop
 ```
 
 ```
+from (Node (Leaf 3) (Leaf 4))
 ```
 
 ```
+λ > eq' (Node (Leaf 3) (Leaf 4)) (Node (Leaf 3) (Leaf 4 :: Int))
+True
 ```
 
 ```
+λ > eq' (Node (Leaf 3) (Leaf 4)) (Node (Leaf 3) (Leaf 5 :: Int))
+False
 ```
+Check `HasMetadata`
 
-```
-```
-
-```
-```
-
-```
-```
-
-```
-```
-
-```
-```
-
-```
-```
-
-```
-```
-
+More examples on Hackage.
 
 ## References
 
-- ???
+- http://cufp.org/2015/t6-andres-loh-generic-programming.html
+- https://github.com/kosmikus/cufp-gp-tutorial-2015
