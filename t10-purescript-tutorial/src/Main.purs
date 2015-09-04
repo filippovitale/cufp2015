@@ -10,6 +10,7 @@ import qualified Halogen.HTML as H
 import qualified Halogen.HTML.Events as E
 
 data Input a = Click a
+             | Timer a
 
 render :: forall p. Render Int Input p
 render n = H.div_ [
@@ -23,6 +24,9 @@ eval :: forall f. Eval Input Int Input f
 eval (Click a) = do
   modify (+ 1)
   pure a
+eval (Timer a) = do
+  modify(`sub` 1)
+  pure a
 
 ui :: forall f p. Component Int Input f p
 ui = component render eval
@@ -31,3 +35,10 @@ main = A.launchAff do
   app <- runUI ui 0
   appendToBody app.node
   log "Hello sailor!"
+  -- identation down here is IMPORTANT
+  let timer = A.later' 300 do
+        -- the driver taked input unit
+        app.driver $ Timer unit
+        -- log "TIMER"
+        timer
+  timer
