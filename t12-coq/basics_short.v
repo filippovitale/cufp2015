@@ -15,7 +15,9 @@ Inductive bool : Type :=
     logic.  Here something can be true, false and unknown. *)
 
 Inductive trivalue : Type :=
-  (* Fill in here *).
+| one : trivalue
+| two : trivalue
+| three : trivalue.
 
 (** We can write functions that operate on [bool]s by simple pattern
     matching, using the [match] keyword. *)
@@ -26,18 +28,26 @@ Definition negb (b:bool) : bool :=
   | false => true
   end.
 
+Check negb.
+Compute (negb true).
+
 Definition orb (b1 b2: bool) : bool :=
   match b1, b2 with
   | false, false => false
   | _, _ => true
   end.
 
-Definition andb (b1 b2: bool) : bool := if b1 then b2 else false.
+Print orb.
 
-(** Exercise: Define xor (exclusive or) . *)
+Definition andb (b1 b2: bool) : bool :=
+  if b1 then b2 else false.
 
 Definition xorb (b1 b2 : bool) : bool :=
-  true (* Change this! *).
+  match b1, b2 with
+  | true, false => true
+  | false, true => true
+  | _, _ => false
+  end.
 
 (** New tactics
     -----------
@@ -50,12 +60,20 @@ Definition xorb (b1 b2 : bool) : bool :=
     - [reflexivity]: Prove that some expression [x] is equal to itself. *)
 
 Example andb_false : forall b, andb false b = false.
-Proof. Admitted.
+Proof.
+  intros b1.
+  simpl.
+  reflexivity.
+Qed.
 
 (** Exercise: Prove this. *)
 Theorem orb_true_l :
   forall b, orb true b = true.
-Proof. (* Fill in here *) Admitted.
+Proof.
+  intros b.
+  simpl.
+  reflexivity.
+Qed.
 
 (** New tactics
     -----------
@@ -65,17 +83,45 @@ Proof. (* Fill in here *) Admitted.
       separately. *)
 
 Lemma double_negation : forall b : bool, negb (negb b) = b.
-Proof. Admitted.
+Proof.
+  intros b.
+  simpl.
+  destruct b.
+  (* focus on: *)
+  + (* case: b is true *)
+    simpl.
+    reflexivity.
+  + (* case: b is false *)
+    simpl.
+    reflexivity.
+Qed.
 
 Theorem andb_commutative : forall b1 b2 : bool, andb b1 b2 = andb b2 b1.
-Proof. Admitted.
+Proof.
+ intros b1 b2.
+ destruct b1.
+ + simpl.
+   destruct b2.
+   - simpl.
+     reflexivity.
+   - simpl.
+     reflexivity.
+ + destruct b2; simpl; reflexivity.
+Qed.
+
+(* we should use `+` `-` `*` consistently *)
 
 (** Exercise: Show that false is an identity element for xor -- that
     is, [xor false b] is equal to [b] *)
 
-Theorem xorb_false : False. (* Replace [False] with claim. *)
+Theorem xorb_false : forall b : bool, xorb false b = b.
 Proof.
-Admitted. (* fill in proof *)
+ intros b.
+ destruct b.
+ + simpl.
+   reflexivity.
+ + simpl; reflexivity.
+Qed.
 
 (** New tactics
     -----------
@@ -88,18 +134,33 @@ Admitted. (* fill in proof *)
       [H : P1 -> P2 -> ... -> Pn -> Q], then [apply H] generates one
       subgoal for each [Pi]. *)
 
-Theorem rewrite_example : forall b1 b2 b3 b4,
+Theorem rewrite_example : forall b1 b2 b3 b4 : bool,
   b1 = b4 ->
   b2 = b3 ->
   andb b1 b2 = andb b3 b4.
-Proof. Admitted.
+Proof.
+  intros b1 b2 b3 b4 E14 E23.
+  rewrite <- E14.
+  rewrite <- E23.
+  apply andb_commutative.
+Qed.
 
 (** Exercise: Show that if [b1 = b2] then [xorb b1 b2] is equal to
     [false] *)
 
-Theorem xorb_same : False. (* Replace [False] by claim *)
+Theorem xorb_same : forall b1 b2 : bool, b1 = b2 -> xorb b1 b2 = false.
 Proof.
-  Admitted. (* fill in proof *)
+  intros b1 b2 E.
+  rewrite E.
+(*
+  destruct b2.
+  + simpl.
+    reflexivity.
+  + simpl.
+    reflexivity.
+*)
+  destruct b2; reflexivity.
+Qed.
 
 End Bool.
 
