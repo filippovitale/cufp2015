@@ -11,6 +11,8 @@ import qualified Halogen.HTML.Events as E
 
 data Input a = Click a
              | Timer a
+             | GetScore (Int -> a)
+             -- free monad formulation of the actions
 
 render :: forall p. Render Int Input p
 render n = H.div_ [
@@ -27,6 +29,9 @@ eval (Click a) = do
 eval (Timer a) = do
   modify(`sub` 1)
   pure a
+eval (GetScore f) = do
+  n <- get
+  pure $ f n
 
 ui :: forall f p. Component Int Input f p
 ui = component render eval
@@ -36,9 +41,11 @@ main = A.launchAff do
   appendToBody app.node
   log "Hello sailor!"
   -- identation down here is IMPORTANT
-  let timer = A.later' 300 do
-        -- the driver taked input unit
-        app.driver $ Timer unit
-        -- log "TIMER"
-        timer
+  -- id ==== identity function
+  -- the driver taked input unit
+  let timer = do
+        score <- app.driver $ GetScore id
+        A.later' (300 - (score * 4)) do
+          app.driver $ Timer unit
+          timer
   timer
