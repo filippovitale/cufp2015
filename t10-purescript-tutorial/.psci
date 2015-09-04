@@ -188,6 +188,7 @@
 :m bower_components/purescript-unfoldable/src/Data/Unfoldable.purs
 :m bower_components/purescript-unsafe-coerce/src/Unsafe/Coerce.purs
 :m bower_components/purescript-void/src/Data/Void.purs
+:f src/Main.js
 :f bower_components/purescript-aff/src/Control/Monad/Aff.js
 :f bower_components/purescript-aff/src/Control/Monad/Aff/AVar.js
 :f bower_components/purescript-aff/src/Control/Monad/Aff/Unsafe.js
