@@ -13,7 +13,7 @@ data Input a = Click a
 
 render :: forall p. Render Int Input p
 render n = H.div_ [
-                    H.text $ "Score: " ++ show n,
+                    H.p_ [ H.text $ "Score: " ++ show n ],
                     H.button [ E.onClick $ E.input_ Click ]
                              [ H.text "Click me!" ]
                   ]
