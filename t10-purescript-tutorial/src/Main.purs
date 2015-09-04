@@ -14,30 +14,42 @@ data Input a = Click a
              | GetScore (Int -> a)
              -- free monad formulation of the actions
 
-render :: forall p. Render Int Input p
+type Game = {
+              score :: Int,
+              high :: Int
+            }
+
+render :: forall p. Render Game Input p
 render n = H.div_ [
-                    H.p_ [ H.text $ "Score: " ++ show n ],
+                    H.p_ [ H.text $ "Score: " ++ show n.score ],
+                    H.p_ [ H.text $ "High: " ++ show n.high ],
                     H.button [ E.onClick $ E.input_ Click ]
                              [ H.text "Click me!" ]
                   ]
 
-eval :: forall f. Eval Input Int Input f
+click :: Game -> Game
+click g = g { score = g.score + 1 }
+
+timer :: Game -> Game
+timer g = g { score = g.score -1 }
+
+eval :: forall f. Eval Input Game Input f
 -- eval has state Monad built in
 eval (Click a) = do
-  modify (+ 1)
+  modify click
   pure a
 eval (Timer a) = do
-  modify(`sub` 1)
+  modify timer
   pure a
 eval (GetScore f) = do
-  n <- get
+  n <- gets _.score
   pure $ f n
 
-ui :: forall f p. Component Int Input f p
+ui :: forall f p. Component Game Input f p
 ui = component render eval
 
 main = A.launchAff do
-  app <- runUI ui 0
+  app <- runUI ui { score: 0, high: 0 }
   appendToBody app.node
   log "Hello sailor!"
   -- identation down here is IMPORTANT
