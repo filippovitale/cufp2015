@@ -187,18 +187,30 @@ Fixpoint mult (n m : nat) : nat :=
   | S n' => plus m (mult n' m)
   end.
 
-Notation "x + y" := (plus x y) (at level 50, left associativity).
-
-Notation "x * y" := (mult x y) (at level 40, left associativity).
-
 (** Exercise: Define exponentiation *)
 
-(* Fill in function here *)
+Fixpoint expo (n m : nat) : nat :=
+  match m with
+  | O    => (S O)
+  | S m' => mult n (expo n m')
+  end.
 
-(* Fill in notation here *)
+  Notation "x + y" := (plus x y) (at level 50, left associativity).
+
+  Notation "x * y" := (mult x y) (at level 40, left associativity).
+
+  Notation "x ^ y" := (expo x y) (at level 30, right associativity).
+
+  Compute ( (S (S O)) + (S (S O)) ).
+  Compute ( (S (S O)) * (S (S O)) ).
+  Compute ( (S (S O)) ^ (S (S O)) ).
 
 Lemma plus_0_l: forall n : nat, O + n = n.
-Proof. Admitted.
+Proof.
+  intros n.
+  simpl.
+  reflexivity.
+Qed.
 
 (**
     New tactic
@@ -209,18 +221,73 @@ Proof. Admitted.
     case. *)
 
 Lemma plus_O_r: forall n : nat, n + O = n.
-Proof. Admitted.
+Proof.
+  intros n.
+  simpl.
+  (* instead of: destruct n. *)
+  induction n as [| n' IH].
+  (* IH ==== Inductive Hypotesis *)
+(*
+  + simpl.
+    reflexivity.
+
+  reflexivity *includes* simpl
+*)
+  + reflexivity.
+  + simpl.
+    rewrite IH.
+    reflexivity.
+Qed.
+
+Print plus_O_r.
 
 Theorem plus_assoc: forall m n o, m + (n + o) = (m + n) + o.
-Proof. Admitted.
+Proof. 
+  intros m n o.
+  induction m.
+  + simpl.
+    reflexivity.
+  + simpl.
+    rewrite IHm.
+    reflexivity.
+ Qed.
 
 (** Take-home exericse: Try to do induction on [n] and [o] in the
     above proof, and see where it fails. *)
 
 (** Exercise: Show that [n + S m] is equal to [S (n + m)]. *)
 
+Lemma plus_S_r : forall n m, n + S m = S (n + m).
+Proof.
+  intros n m.
+  simpl.
+  induction n as [| n' IH].
+  + simpl.
+    reflexivity.
+  + simpl.
+    rewrite IH.
+    reflexivity.
+Qed.
+
 (** Exercise: Show that plus is commutative. *)
 (** Hint: Look at our earlier lemmas. *)
+
+Lemma plus_comm : forall n m, n + m = m + n.
+Proof.
+  intros n m.
+  induction m.
+  + simpl.
+    apply plus_O_r.
+  + simpl.
+    rewrite <- IHm.
+   apply plus_S_r.
+Qed.
+
+(*
+  To search the right lemma: SearchAbout 
+
+  e.g. SearchAbout (_ + S = _).
+*)
 
 (** Additional take-home exercises: Show that mult has an identity [S
     O], a annihilator [O] and associative, commutative and
@@ -256,7 +323,6 @@ Fixpoint div (m n: nat) : nat :=
             | S m' => S (div (S m' - S n') (S n'))
             end
   end.
-
 Fixpoint beq_nat (m n : nat) : bool :=
   match m, n with
   | O, O => true
@@ -272,6 +338,8 @@ Definition max (m n : nat) : nat :=
 
     - [clear]: Remove hypotheses from the context (needed here to
       simplify our IH). *)
+
+(* revert is the opposite of intros *)
 
 Lemma beq_nat_eq :
   forall m n, m = n -> beq_nat m n = true.
@@ -293,14 +361,53 @@ Qed.
 
 Lemma eq_beq_nat :
   forall m n, beq_nat m n = true -> m = n.
-Proof. Admitted.
+Proof.
+(* 1st try
+  intros m n e.
+  induction m.
+  + destruct n.
+      - reflexivity.
+      - simpl in e.
+         discriminate.
+  + rewrite IHm
+*)
+  intros m n e.
+  revert n e.
+  induction m.
+  + intros n e.
+      destruct n.
+      - reflexivity.
+      - simpl in e.
+         discriminate.
+  + intros n H.
+      destruct n.
+      - simpl in H.
+          discriminate.
+      - simpl in H.
+        apply IHm in H.
+        rewrite H.
+        reflexivity.
+Qed.
 
-(** Exercise: Prove this statement. *)
+Lemma plus_eq_0 : forall n m,  n + m = O -> n = O.
+Proof.
+(*  SearchAbout (_ + (S _) = _). 
+  intros n.
+  induction n.
+  + reflexivity.
+  + intros m H.
+      destruct n.
+*)
 
-Lemma plus_eq_0 :
-  forall n m,
-    n + m = O -> n = O.
-Proof. (* Fill in here *) Admitted.
+  intros n.
+  induction n.
+  + reflexivity.
+  + intros m H.
+      (* inversion H. *)
+       simpl in H.
+       discriminate.
+
+Qed.
 
 End Nat.
 
@@ -338,6 +445,8 @@ Definition singleton_list'' {T} (x : T) :=
 Check (singleton_list'' 3).
 Check (@singleton_list'' nat).
 
+(* @ turn off implicit arguments *)
+
 Check @singleton_list''.
 Check @nil.
 
@@ -348,7 +457,10 @@ Notation "[ x ; .. ; y ]" := (cons x .. (cons y nil) ..).
 (* Exercise: Define "snoc", which adds an element to the end of a list. *)
 
 Fixpoint snoc {T} (l : list T) (x : T) : list T :=
-  [] (* Fill in here *).
+  match l with
+  | []       => [x]
+  | x' :: l' => x' :: snoc l' x
+  end.
 
 Fixpoint app {T} (l1 l2 : list T) : list T :=
   match l1 with
@@ -361,9 +473,14 @@ Notation "l1 ++ l2" := (app l1 l2) (at level 60, right associativity).
 Lemma app_assoc :
   forall T (l1 l2 l3 : list T),
     l1 ++ (l2 ++ l3) = (l1 ++ l2) ++ l3.
-Proof. Admitted.
-
-(* Exercise *)
+Proof.
+(*  intros T l x.
+  induction l as [|x' l IH]; simpl.
+  - reflexivity.
+  - rewrite IH. reflexivity.
+Qed.
+*)
+Admitted.
 
 Lemma snoc_app :
   forall T (l : list T) (x : T),
@@ -401,10 +518,37 @@ Definition tr_rev {T} (l: list T) := tr_rev_aux l [].
       in the goal.
 *)
 
+Lemma tr_rev_aux_correct :
+  forall T (l1 l2 : list T),
+    tr_rev_aux l1 l2  = rev l1 ++ l2.
+Proof.
+  intros T l1 l2.
+  revert l2.
+  induction l1 as [|x1 l1 IH]; simpl.
+  - intros l2. reflexivity.
+  - intros l2. rewrite IH.
+    SearchAbout (_ ++ _ ++ _).
+    rewrite <- app_assoc.
+    simpl.
+    reflexivity.
+Qed.
+
 Lemma tr_rev_correct :
   forall T (l : list T),
     tr_rev l = rev l.
-Proof. Admitted.
+Proof.
+  intros T l.
+  unfold tr_rev.
+  rewrite tr_new_aux_correct.
+  simpl.
+  SearchAbout (_ ++ [])
+(*
+  induction l as [|x l IH]. simpl.
+  - reflexivity.
+  - .
+*)
+  apply app_nil_r.
+Qed.
 
 (* ###################################################################### *)
 (** * Dependently Typed Programming *)

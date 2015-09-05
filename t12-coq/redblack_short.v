@@ -36,11 +36,16 @@ Hypothesis comp_trans :
                 comp y z = Lt ->
                 comp x z = Lt.
 Hypothesis comp_refl_iff :
+(* <-> ==== if and only if *)
   forall x y, comp x y = Eq <-> x = y.
 
 (* Exercise: (Hint: [apply] works with [<->]) *)
 Lemma comp_refl : forall x, comp x x = Eq.
-Proof. Admitted.
+Proof.
+  intros x.
+  rewrite comp_refl_iff.
+  reflexivity.
+Qed.
 
 (** Red-black trees are binary search trees that contain elements of
     [A] on their internal nodes, and such that every internal node is
